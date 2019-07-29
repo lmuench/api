@@ -17,25 +17,21 @@ type Answer struct {
 }
 
 func Handle(call Call) Answer {
-	plugs := []plug.Plug{
-		plug.Log{},
-	}
-
 	switch call.Command {
 	case "POST", "GET", "PUT", "DELETE":
-		return handleRequest(call, plugs)
+		return handleRequest(call)
 	default:
 		return handleDefault(call)
 	}
 }
 
-func handleRequest(call Call, plugs []plug.Plug) Answer {
+func handleRequest(call Call) Answer {
 	req := &client.Request{
 		Method: call.Command,
 		URL:    strings.Join(call.Args, " "),
 	}
 
-	for _, p := range plugs {
+	for _, p := range plug.Registry {
 		p.OnReq(req)
 	}
 

@@ -6,6 +6,10 @@ import (
 	"github.com/lmuench/api/client"
 )
 
+func init() {
+	Register(Log{})
+}
+
 type Log struct{}
 
 func (_ Log) OnReq(req *client.Request) {
