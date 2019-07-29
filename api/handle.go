@@ -26,12 +26,13 @@ func Handle(call Call) Answer {
 }
 
 func handleRequest(call Call) Answer {
-	req := client.Request{
+	req := &client.Request{
 		Method: call.Command,
 		URL:    strings.Join(call.Args, " "),
 	}
-	// plugs receive copies of request which can be used to visualize effect of plugs
-	req = plug.Log(req)
+
+	plug.Log(req)
+
 	res := client.Fetch(req)
 	return Answer{
 		Result: res.Body,

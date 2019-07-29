@@ -6,7 +6,6 @@ import (
 	"github.com/lmuench/api/client"
 )
 
-func Log(req client.Request) client.Request {
+func Log(req *client.Request) {
 	fmt.Printf("plug.Log: %s %s\n", req.Method, req.URL)
-	return req
 }
