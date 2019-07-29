@@ -6,6 +6,12 @@ import (
 	"github.com/lmuench/api/client"
 )
 
-func Log(req *client.Request) {
-	fmt.Printf("plug.Log: %s %s\n", req.Method, req.URL)
+type Log struct{}
+
+func (_ Log) OnReq(req *client.Request) {
+	fmt.Printf("plug.Log#OnReq(): %s %s\n", req.Method, req.URL)
+}
+
+func (_ Log) OnRes(res *client.Response) {
+	fmt.Println("not yet implemented")
 }
