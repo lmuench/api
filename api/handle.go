@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/lmuench/api/client"
@@ -35,7 +36,15 @@ func handleRequest(call Call) Answer {
 		p.OnReq(req)
 	}
 
+	fmt.Printf("%s %s\n", req.Method, req.URL)
+	fmt.Printf("Cookie: %s\n\n", req.Cookie)
+
 	res := client.Fetch(req)
+
+	for _, p := range plug.Registry {
+		p.OnRes(res)
+	}
+
 	return Answer{
 		Result: res.Body,
 	}
