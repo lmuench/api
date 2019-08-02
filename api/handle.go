@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
-	"strings"
+	"io/ioutil"
+	"net/http"
 
-	"github.com/lmuench/api/client"
 	"github.com/lmuench/api/plug"
 )
 
@@ -14,7 +14,8 @@ type Call struct {
 }
 
 type Answer struct {
-	Result string
+	Result   string
+	Response *http.Response
 }
 
 func Handle(call Call) Answer {
@@ -27,31 +28,42 @@ func Handle(call Call) Answer {
 }
 
 func handleRequest(call Call) Answer {
-	req := &client.Request{
-		Method: call.Command,
-		URL:    strings.Join(call.Args, " "),
+	req, err := http.NewRequest(call.Command, call.Args[0], nil)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	for _, p := range plug.Registry {
 		p.OnReq(req)
 	}
 
-	fmt.Printf("%s %s\n", req.Method, req.URL)
-	fmt.Printf("Cookie: %s\n\n", req.Cookie)
+	fmt.Printf("%s %s\n", call.Command, call.Args[0])
+	fmt.Printf("Request cookies: %s\n\n", req.Cookies())
 
-	res := client.Fetch(req)
+	client := http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	for _, p := range plug.Registry {
 		p.OnRes(res)
 	}
 
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	return Answer{
-		Result: res.Body,
+		Result:   string(body),
+		Response: res,
 	}
 }
 
 func handleDefault(call Call) Answer {
 	return Answer{
-		Result: "not implemented",
+		Result:   "not implemented",
+		Response: nil,
 	}
 }

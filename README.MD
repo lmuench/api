@@ -1,11 +1,11 @@
 # api
 Command line HTTP client
 
-### Architecture
+### Request Response Cycle
 ```
-+---+  +---+  +-----+  +------+
-|   |  |   |  |     |  |      |
-|cli|->|api|->|plugs|->|client|-->
-|   |  |   |  |     |  |      |
-+---+  +---+  +-----+  +------+ 
++---+  api.Call  +---+ http.Request  +-----+ http.Request  +------+ HTTP request  +---+
+|   |----------->|   |-------------->|     |-------------->|      |-------------->|   |
+|cli|            |api|               |plugs|               |client|               | ? |
+|   |<-----------|   |<--------------|     |<--------------|      |<--------------|   |
++---+ api.Answer +---+ http.Response +-----+ http.Response +------+ HTTP response +---+
 ```

@@ -3,9 +3,8 @@ package plug
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
-
-	"github.com/lmuench/api/client"
 )
 
 func init() {
@@ -14,19 +13,21 @@ func init() {
 
 type Session struct{}
 
-func (_ Session) OnReq(req *client.Request) {
+func (_ Session) OnReq(req *http.Request) {
 	b, err := ioutil.ReadFile("cookie")
 	if err != nil {
 		fmt.Println(err)
 	}
-	req.Cookie = string(b)
+	req.Header.Set("Cookie", string(b))
 }
 
-func (_ Session) OnRes(res *client.Response) {
-	b := []byte(
-		strings.Join(res.Cookies, "; "),
-	)
-	err := ioutil.WriteFile("cookie", b, 0600)
+func (_ Session) OnRes(res *http.Response) {
+	var cookies []string
+	for _, cookie := range res.Cookies() {
+		cookies = append(cookies, cookie.Name+"="+cookie.Value)
+	}
+
+	err := ioutil.WriteFile("cookie", []byte(strings.Join(cookies, "; ")), 0600)
 	if err != nil {
 		fmt.Println(err)
 	}
