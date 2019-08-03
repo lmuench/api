@@ -2,10 +2,10 @@
 Command line HTTP client
 
 ### Usage
-Execute an HTTP GET request against the given URL
+Execute an HTTP request against the given URL
 
 Usage:
-  `api GET [URL] [flags]`
+  `api [http method] [URL] [flags]`
 
 ### Session Cookies
 api supports session cookies out-of-the-box
