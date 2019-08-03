@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/lmuench/api/api"
+	"github.com/lmuench/api/store"
 )
 
 var cookie1 = &http.Cookie{
@@ -38,4 +39,6 @@ func TestSessionTokens(t *testing.T) {
 	if cookie2.Value != cookie1.Value {
 		t.Error("Second request did not contain cookie returned by first response")
 	}
+
+	_ = store.Delete("cookie")
 }

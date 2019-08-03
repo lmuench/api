@@ -26,6 +26,19 @@ func Set(key, val string) error {
 	return err
 }
 
+func Delete(key string) error {
+	kv := parseOrCreateMap()
+	delete(kv, key)
+
+	b, err := json.Marshal(kv)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(filename, b, 0600)
+	return err
+}
+
 func parseOrCreateMap() map[string]string {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
