@@ -2,9 +2,10 @@ package plug
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/lmuench/api/store"
 )
 
 func init() {
@@ -14,11 +15,12 @@ func init() {
 type Session struct{}
 
 func (_ Session) OnReq(req *http.Request) {
-	b, err := ioutil.ReadFile("cookie")
-	if err != nil {
-		fmt.Println(err)
+	cookie, ok := store.Get("cookie")
+	if !ok {
+		fmt.Println("cookie not found")
+		return
 	}
-	req.Header.Set("Cookie", string(b))
+	req.Header.Set("Cookie", cookie)
 }
 
 func (_ Session) OnRes(res *http.Response) {
@@ -27,7 +29,7 @@ func (_ Session) OnRes(res *http.Response) {
 		cookies = append(cookies, cookie.Name+"="+cookie.Value)
 	}
 
-	err := ioutil.WriteFile("cookie", []byte(strings.Join(cookies, "; ")), 0600)
+	err := store.Set("cookie", strings.Join(cookies, "; "))
 	if err != nil {
 		fmt.Println(err)
 	}
