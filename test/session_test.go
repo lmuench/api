@@ -11,12 +11,12 @@ import (
 	"github.com/lmuench/api/store"
 )
 
-var cookie1 = &http.Cookie{
+var res1cookie = &http.Cookie{
 	Name:  "api_test_session_cookie",
 	Value: "abc123",
 }
 
-var cookie2 = &http.Cookie{
+var res2cookie = &http.Cookie{
 	Name:  "api_test_session_cookie",
 	Value: "def456",
 }
@@ -50,7 +50,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, cookie1)
+	http.SetCookie(w, res1cookie)
 }
 
 func protectedEndpointHandler(w http.ResponseWriter, r *http.Request) {
@@ -61,11 +61,11 @@ func protectedEndpointHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := cookies[0]
-	if cookie.Name != cookie1.Name || cookie.Value != cookie1.Value {
+	if cookie.Name != res1cookie.Name || cookie.Value != res1cookie.Value {
 		http.Error(w, "", http.StatusUnauthorized)
 		return
 	}
-	http.SetCookie(w, cookie2)
+	http.SetCookie(w, res2cookie)
 }
 
 func runServer() {
@@ -92,15 +92,33 @@ func TestSessionTokens(t *testing.T) {
 		Command: "GET",
 		Args:    []string{"http://localhost:6000/protected-endpoint"},
 	}
-	protectedEndpointAnswer := api.Handle(protectedEndpointCall)
+	protectedEndpointAnswer1 := api.Handle(protectedEndpointCall)
 
-	cookie2, err := protectedEndpointAnswer.Response.Request.Cookie(cookie1.Name)
+	if len(protectedEndpointAnswer1.Response.Request.Cookies()) < 1 {
+		t.Error("Second request did not have a cookie in the request header")
+	}
+	req2cookie := protectedEndpointAnswer1.Response.Request.Cookies()[0]
 	if err != nil {
 		t.Error(err)
 	}
-	if cookie2.Value != cookie1.Value {
+	if req2cookie.Value != res1cookie.Value {
 		t.Error("Second request did not contain cookie returned by first response")
 	}
+
+	protectedEndpointAnswer2 := api.Handle(protectedEndpointCall)
+
+	if len(protectedEndpointAnswer2.Response.Request.Cookies()) < 1 {
+		t.Error("Third request did not have a cookie in the request header")
+	}
+	req3cookie := protectedEndpointAnswer2.Response.Request.Cookies()[0]
+	if err != nil {
+		t.Error(err)
+	}
+	if req3cookie.Value != res2cookie.Value {
+		t.Error("Third request did not contain cookie returned by second response")
+	}
+
+	// Note: third request will result in 401 Unauthorized but it does not matter for the test
 
 	_ = store.Delete("cookie")
 }
