@@ -5,7 +5,7 @@ Command line HTTP client
 Execute an HTTP request against the given URL
 
 Usage:
-  `api [http method] [URL] [flags]`
+  `api [http method] [URL] [body]`
 
 ### Session Cookies
 api supports session cookies out-of-the-box

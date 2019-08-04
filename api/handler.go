@@ -21,48 +21,41 @@ type Answer struct {
 }
 
 func Handle(call Call) Answer {
-	if len(call.Args) < 1 {
-		return handleDefault(call)
-	}
-	method := call.Command
-	url := call.Args[0]
 	switch call.Command {
-	case "POST", "PUT", "PATCH":
-		if len(call.Args) > 1 {
-			body := call.Args[1]
-			return handleRequestWithBody(method, url, body)
-		}
-		return handleRequestWithoutBody(method, url)
-	case "GET", "DELETE":
-		return handleRequestWithoutBody(method, url)
+	case "POST", "GET", "PUT", "PATCH", "DELETE":
+		req := createRequest(call)
+		res := handleRequest(req)
+		answer := handleResponse(res)
+		return answer
 	default:
 		return handleDefault(call)
 	}
 }
 
-func handleRequestWithBody(method, url, body string) Answer {
-	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
+func createRequest(call Call) *http.Request {
+	if len(call.Args) < 1 {
+		log.Panicln("URL parameter missing")
+	}
+
+	method := call.Command
+	url := call.Args[0]
+	fmt.Printf("%s %s\n", method, url)
+
+	var req *http.Request
+	var err error
+
+	if len(call.Args) > 1 {
+		body := call.Args[1]
+		fmt.Printf("Body: %s\n", body)
+		req, err = http.NewRequest(method, url, bytes.NewBuffer([]byte(body)))
+	} else {
+		req, err = http.NewRequest(method, url, nil)
+	}
+
 	if err != nil {
 		log.Panicln(err)
 	}
-	fmt.Printf("%s %s\n", method, url)
-	fmt.Printf("Body: %s\n", body)
-
-	res := handleRequest(req)
-	answer := handleResponse(res)
-	return answer
-}
-
-func handleRequestWithoutBody(method, url string) Answer {
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		log.Panicln(err)
-	}
-	fmt.Printf("%s %s\n", method, url)
-
-	res := handleRequest(req)
-	answer := handleResponse(res)
-	return answer
+	return req
 }
 
 func handleRequest(req *http.Request) *http.Response {
@@ -81,7 +74,7 @@ func handleRequest(req *http.Request) *http.Response {
 }
 
 func handleResponse(res *http.Response) Answer {
-	fmt.Println(res.Status, "\n")
+	fmt.Printf("%s\n\n", res.Status)
 
 	for _, p := range plug.Registry {
 		p.OnRes(res)
