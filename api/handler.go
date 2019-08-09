@@ -59,9 +59,7 @@ func createRequest(call Call) *http.Request {
 }
 
 func handleRequest(req *http.Request) *http.Response {
-	for _, p := range plug.Registry {
-		p.OnReq(req)
-	}
+	runPlugsOnReq(req)
 
 	fmt.Printf("Request cookies: %s\n", req.Cookies())
 
@@ -74,20 +72,29 @@ func handleRequest(req *http.Request) *http.Response {
 }
 
 func handleResponse(res *http.Response) Answer {
-	fmt.Printf("%s\n\n", res.Status)
+	runPlugsOnRes(res)
 
-	for _, p := range plug.Registry {
-		p.OnRes(res)
-	}
+	fmt.Printf("%s\n\n", res.Status)
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	return Answer{
 		Result:   string(body),
 		Response: res,
+	}
+}
+
+func runPlugsOnReq(req *http.Request) {
+	for _, p := range plug.Registry {
+		p.OnReq(req)
+	}
+}
+
+func runPlugsOnRes(res *http.Response) {
+	for _, p := range plug.Registry {
+		p.OnRes(res)
 	}
 }
 
